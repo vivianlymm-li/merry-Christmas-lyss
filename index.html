@@ -42,61 +42,109 @@
             color: white; font-size: 1.2rem; z-index: 20; transition: opacity 0.5s;
         }
 
+        /* --- 音乐按钮样式修改 --- */
         #music-btn {
             position: absolute;
             top: 20px;
             right: 20px;
-            z-index: 50;
-            font-size: 2rem;
+            width: 40px;
+            height: 40px;
             cursor: pointer;
-            opacity: 0.7;
-            transition: opacity 0.3s;
+            z-index: 50;
+            opacity: 0.8;
+            transition: opacity 0.3s, transform 0.3s;
             user-select: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
-        #music-btn:hover { opacity: 1; }
+        #music-btn:hover { 
+            opacity: 1.0; 
+            transform: scale(1.1);
+        }
 
-        @keyframes spin { 100% { transform: rotate(360deg); } }
+        /* 蓝色亮亮音符的样式 */
+        .music-icon-playing {
+            width: 100%;
+            height: 100%;
+            fill: #88ccff; /* 主色调浅蓝 */
+            /* 双重阴影制造发光感 */
+            filter: drop-shadow(0 0 5px #88ccff) drop-shadow(0 0 15px #0072ff);
+            animation: floatNote 2s ease-in-out infinite;
+        }
 
-        /* --- 新增：启动遮罩层样式 --- */
+        /* 静音图标样式 */
+        .music-icon-muted {
+            width: 80%;
+            height: 80%;
+            fill: #666; /* 灰色 */
+            filter: none;
+        }
+
+        @keyframes floatNote {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-3px); }
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* --- 启动遮罩层样式 --- */
         #start-screen {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.95);
+            background-color: #000000;
+            z-index: 9999; /* 确保在最顶层 */
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            z-index: 9999;
-            transition: opacity 0.8s ease;
+            transition: opacity 1.0s ease-out; /* 淡出动画 */
+        }
+
+        .start-content {
+            text-align: center;
+            color: white;
+            animation: fadeIn 2s ease-in;
+        }
+
+        .start-title {
+            font-size: 2rem;
+            letter-spacing: 5px;
+            margin-bottom: 30px;
+            font-weight: 300;
+            text-shadow: 0 0 15px rgba(255,255,255,0.5);
         }
 
         #start-btn {
-            padding: 15px 40px;
-            font-size: 1.2rem;
-            letter-spacing: 3px;
-            color: #fff;
+            padding: 12px 40px;
             background: transparent;
-            border: 2px solid rgba(255, 255, 255, 0.5);
-            border-radius: 30px;
+            border: 1px solid rgba(255,255,255,0.6);
+            color: white;
+            font-size: 1rem;
+            letter-spacing: 2px;
             cursor: pointer;
-            text-transform: uppercase;
-            transition: all 0.3s;
-            margin-top: 20px;
+            border-radius: 30px;
+            transition: all 0.3s ease;
         }
 
         #start-btn:hover {
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(255,255,255,0.15);
             border-color: #fff;
-            box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+            box-shadow: 0 0 15px rgba(255,255,255,0.3);
+            transform: scale(1.05);
         }
 
-        .hidden {
-            opacity: 0;
-            pointer-events: none;
+        @keyframes fadeIn {
+            0% { opacity: 0; transform: translateY(20px); }
+            100% { opacity: 1; transform: translateY(0); }
         }
+
     </style>
 
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
@@ -114,17 +162,23 @@
     </script>
 </head>
 <body>
+    <!-- 启动遮罩层结构 -->
+    <div id="start-screen">
+        <div class="start-content">
+            <div class="start-title">MERRY CHRISTMAS</div>
+            <button id="start-btn">CLICK HERE</button>
+            <p style="margin-top: 15px; font-size: 0.8rem; color: #666;">你需要打开摄像头，伸出手掌跟随指引做手势哦~winky winky~</p>
+        </div>
+    </div>
+
     <audio id="bgm" loop>
         <source src="https://cdn.jsdelivr.net/gh/vivianlymm-li/my-image-hosting@main/alliwantfor.mp3">
     </audio>
 
-    <div id="start-screen">
-        <h1 style="color:white; margin-bottom:20px; font-size: 2rem;">Merry Christmas</h1>
-        <p style="color:#aaa; font-size:0.9rem;">Interact to start the magic</p>
-        <button id="start-btn">ENTER EXPERIENCE</button>
+    <!-- 音乐按钮 (默认静音 SVG) -->
+    <div id="music-btn">
+        <svg class="music-icon-muted" viewBox="0 0 24 24"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73 4.27 3zM12 4L9.91 6.09 12 8.18V4z"/></svg>
     </div>
-
-    <div id="music-btn">🔇</div>
 
     <div id="loading" class="loading">LOADING (camera)...</div>
 
@@ -204,6 +258,7 @@
         // --- 终章模式状态 ---
         let finaleActive = false;
         let finaleProgress = 0.0;
+        let finaleTriggered = false; 
 
         // 摄像机关键位置
         const treeCamPos = new THREE.Vector3(0, 12, 50);    
@@ -394,7 +449,7 @@
 
             geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
             geometry.setAttribute('aColor', new THREE.Float32BufferAttribute(colors, 3)); 
-            geometry.setAttribute('aSize', new THREE.Float32BufferAttribute(sizes, 1));     
+            geometry.setAttribute('aSize', new THREE.Float32BufferAttribute(sizes, 1));    
             geometry.setAttribute('aRandom', new THREE.Float32BufferAttribute(randoms, 1));
             addGalaxyAttribute(geometry, count, 1.0, 10);
 
@@ -575,4 +630,814 @@
                     const angle = (i / ringCount) * Math.PI * 2;
                     const scatterR = (Math.random() - 0.5) + (Math.random() - 0.5); 
                     const r = radius + scatterR * 0.5; 
-                    let x = Math.cos(angle) * r; let y = (Math.random() - 0.5) * 0.4; let z = Math.sin
+                    let x = Math.cos(angle) * r; let y = (Math.random() - 0.5) * 0.4; let z = Math.sin(angle) * r;
+                    let y1 = y * Math.cos(tiltX) - z * Math.sin(tiltX);
+                    let z1 = y * Math.sin(tiltX) + z * Math.cos(tiltX);
+                    let x2 = x * Math.cos(tiltZ) - y1 * Math.sin(tiltZ);
+                    let y2 = x * Math.sin(tiltZ) + y1 * Math.cos(tiltZ);
+                    rPos.push(x2, y2, z1); 
+                    const distFactor = 1.0 - Math.abs(scatterR) * 0.8; const brightness = 0.4 * distFactor; 
+                    rColors.push(brightness, brightness * 1.1, brightness * 1.2); 
+                    rSizes.push(Math.random() * 0.6 + 0.4); rRandoms.push(Math.random());
+                }
+                rGeo.setAttribute('position', new THREE.Float32BufferAttribute(rPos, 3));
+                rGeo.setAttribute('aColor', new THREE.Float32BufferAttribute(rColors, 3));
+                rGeo.setAttribute('aSize', new THREE.Float32BufferAttribute(rSizes, 1));
+                rGeo.setAttribute('aRandom', new THREE.Float32BufferAttribute(rRandoms, 1));
+                addGalaxyAttribute(rGeo, ringCount, 1.0, galaxyLocalY);
+                return new THREE.Points(rGeo, ringMaterial);
+            };
+
+            topStarRing1Points = createRing(2.0, Math.PI * 0.25, Math.PI * 0.1);
+            topStarRing1Points.position.set(0, objY, 0);
+            scene.add(topStarRing1Points);
+
+            topStarRing2Points = createRing(2.0, -Math.PI * 0.25, -Math.PI * 0.1);
+            topStarRing2Points.position.set(0, objY, 0);
+            scene.add(topStarRing2Points);
+        }
+
+        function createPhotoGallery() {
+            photoGroup = new THREE.Group();
+            photoGroup.position.set(0, 10, 0); 
+            photoGroup.renderOrder = 999; 
+            scene.add(photoGroup);
+
+            const count = 12;
+            const radius = 10; 
+            
+            // --- [修改重点] 高清配置 ---
+            const RES_SCALE = 4; // 分辨率放大4倍 (300x400 -> 1200x1600)
+            
+            // 相框3D物理尺寸 (保持不变，只改纹理清晰度)
+            const frameWidth = 3.5;
+            const frameHeight = 4.5;
+            const photoWidth = 3.2;
+            const photoHeight = 4.2;
+
+            // 绘制背景的辅助函数 (已适配 RES_SCALE)
+            const drawBackground = (ctx, isGolden, w, h) => {
+                const grd = ctx.createLinearGradient(0, 0, w, h);
+                if (isGolden) {
+                    grd.addColorStop(0, '#B78727'); 
+                    grd.addColorStop(1, '#F7D674'); 
+                } else {
+                    grd.addColorStop(0, '#001f3f'); 
+                    grd.addColorStop(1, '#0072ff'); 
+                }
+                ctx.fillStyle = grd;
+                ctx.fillRect(0, 0, w, h);
+            };
+
+            // 创建背面纹理 (祝福语) - 已适配高清
+            const createBackTexture = (text, isGolden = false) => {
+                const canvas = document.createElement('canvas');
+                // 放大画布尺寸
+                canvas.width = 300 * RES_SCALE; 
+                canvas.height = 400 * RES_SCALE;
+                const ctx = canvas.getContext('2d');
+                
+                const w = canvas.width;
+                const h = canvas.height;
+                
+                drawBackground(ctx, isGolden, w, h);
+                
+                ctx.strokeStyle = isGolden ? "rgba(255, 255, 255, 0.9)" : "rgba(255, 255, 255, 0.8)";
+                ctx.lineWidth = 15 * RES_SCALE; // 线条加粗
+                // 绘制边框
+                ctx.strokeRect(10 * RES_SCALE, 10 * RES_SCALE, 280 * RES_SCALE, 380 * RES_SCALE);
+                
+                ctx.fillStyle = isGolden ? "#5C4033" : "white";
+                ctx.textAlign = "center";
+                ctx.textBaseline = "middle";
+                ctx.font = `bold ${40 * RES_SCALE}px Arial`; // 字体放大
+                
+                const words = text.split(' ');
+                // 坐标位置也相应放大
+                const cx = 150 * RES_SCALE; 
+                const cy1 = 180 * RES_SCALE;
+                const cy2 = 230 * RES_SCALE;
+                const cyC = 200 * RES_SCALE;
+
+                if (words.length > 2) {
+                    ctx.fillText(words.slice(0, Math.ceil(words.length/2)).join(' '), cx, cy1);
+                    ctx.fillText(words.slice(Math.ceil(words.length/2)).join(' '), cx, cy2);
+                } else {
+                    ctx.fillText(text, cx, cyC);
+                }
+                
+                const tex = new THREE.CanvasTexture(canvas);
+                tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
+                return tex;
+            };
+
+            const createGoldenBackTexture = (text) => {
+                return createBackTexture(text, true);
+            };
+
+            // 绘制占位图 (礼物盒) - 已适配高清
+            const drawPlaceholder = (ctx) => {
+                const w = 300 * RES_SCALE;
+                const h = 400 * RES_SCALE;
+
+                ctx.fillStyle = '#C0392B';
+                ctx.fillRect(0, 0, w, h); 
+                
+                ctx.fillStyle = '#F1C40F';
+                // 坐标和尺寸都需要乘以 RES_SCALE
+                ctx.fillRect(135 * RES_SCALE, 0, 30 * RES_SCALE, h); 
+                ctx.fillRect(0, 185 * RES_SCALE, w, 30 * RES_SCALE); 
+                
+                ctx.fillStyle = 'white';
+                ctx.font = `bold ${32 * RES_SCALE}px Arial`;
+                ctx.textAlign = 'center';
+                ctx.fillText("🎁 GIFT", 150 * RES_SCALE, 120 * RES_SCALE);
+                ctx.font = `${20 * RES_SCALE}px Arial`;
+                ctx.fillText("FOR YOU", 150 * RES_SCALE, 160 * RES_SCALE);
+            };
+
+            // 创建正面照片纹理 - 已适配高清
+            const createFrontTexture = (imgFilename) => {
+                const canvas = document.createElement('canvas');
+                // 核心：大幅提升画布分辨率
+                canvas.width = 300 * RES_SCALE; 
+                canvas.height = 400 * RES_SCALE;
+                const ctx = canvas.getContext('2d');
+                
+                // 默认黑色背景
+                ctx.fillStyle = "#000";
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                const tex = new THREE.CanvasTexture(canvas);
+                const img = new Image();
+                img.crossOrigin = "Anonymous";
+                
+                img.onload = () => {
+                    // 将图片拉伸绘制到高清画布上
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    tex.colorSpace = THREE.SRGBColorSpace; 
+                    tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
+                    // 优化过滤设置，防止远处闪烁
+                    tex.minFilter = THREE.LinearMipMapLinearFilter;
+                    tex.magFilter = THREE.LinearFilter;
+                    tex.needsUpdate = true;
+                };
+                
+                img.onerror = () => {
+                    drawPlaceholder(ctx);
+                    tex.needsUpdate = true;
+                };
+                
+                if (!imgFilename) {
+                    drawPlaceholder(ctx);
+                    tex.needsUpdate = true;
+                } else {
+                    img.src = imgFilename;
+                }
+                
+                return tex;
+            };
+
+            // 下面是创建 Mesh 的逻辑，基本保持不变
+            const frameGeometry = new THREE.PlaneGeometry(3.5, 4.5);
+            const photoGeometry = new THREE.PlaneGeometry(3.2, 4.2);
+
+            for (let i = 0; i < count; i++) {
+                const cardContainer = new THREE.Group();
+                const imgFile = IMG_FILES[i % IMG_FILES.length];
+                const blessingText = BLESSINGS[i % BLESSINGS.length]; 
+
+                const realPhotoTex = createFrontTexture(imgFile);
+                const backTex = createBackTexture(blessingText, false); 
+
+                // 1. 相框 Mesh 
+                const frameMat = new THREE.MeshBasicMaterial({
+                    color: new THREE.Color(1.1, 1.1, 1.1),
+                    transparent: true,
+                    opacity: 0,
+                    side: THREE.FrontSide,
+                    depthWrite: false
+                });
+                const frameMesh = new THREE.Mesh(frameGeometry, frameMat);
+                frameMesh.position.z = 0.01;
+
+                // 2. 照片 Mesh 
+                const photoMat = new THREE.MeshBasicMaterial({
+                    map: realPhotoTex,
+                    color: 0xffffff,
+                    transparent: true,
+                    opacity: 0,
+                    side: THREE.FrontSide,
+                    depthWrite: true, 
+                    fog: false 
+                });
+                const photoMesh = new THREE.Mesh(photoGeometry, photoMat);
+                photoMesh.position.z = 0.02; // 叠加在相框之上
+                
+                // 3. 封面 Mesh (未解锁状态，蓝色牌面)
+                const coverMat = new THREE.MeshBasicMaterial({
+                    map: backTex, 
+                    color: 0xffffff, 
+                    transparent: true,
+                    opacity: 0, 
+                    side: THREE.FrontSide,
+                    depthWrite: false
+                });
+                const coverMesh = new THREE.Mesh(frameGeometry, coverMat);
+                coverMesh.position.z = 0.03; // 在照片之上
+
+                // 4. 背面 Mesh
+                const backMat = new THREE.MeshBasicMaterial({
+                    map: backTex, 
+                    color: 0xcccccc,
+                    transparent: true,
+                    opacity: 0,
+                    side: THREE.FrontSide, 
+                    depthWrite: false,
+                    fog: false 
+                });
+                const backMesh = new THREE.Mesh(frameGeometry, backMat);
+                backMesh.rotation.y = Math.PI; 
+                backMesh.position.z = -0.01;
+
+                cardContainer.add(frameMesh);
+                cardContainer.add(photoMesh);
+                cardContainer.add(coverMesh); 
+                cardContainer.add(backMesh);
+                
+                // 初始化 coverAlpha = 1.0 (完全覆盖)
+                cardContainer.userData.coverAlpha = 1.0;
+
+                const angle = (i / count) * Math.PI * 2;
+                cardContainer.position.set(
+                    Math.cos(angle) * radius,
+                    0,
+                    Math.sin(angle) * radius
+                );
+                
+                cardContainer.lookAt(
+                    cardContainer.position.x * 2, 
+                    0, 
+                    cardContainer.position.z * 2
+                );
+
+                cardContainer.userData.originPos = cardContainer.position.clone();
+                cardContainer.userData.originQuat = cardContainer.quaternion.clone();
+                
+                const tempLook = cardContainer.clone();
+                tempLook.lookAt(0, 2, 0); 
+                cardContainer.userData.inwardQuat = tempLook.quaternion.clone();
+
+                cardContainer.userData.originScale = cardContainer.scale.clone();
+                cardContainer.userData.randomOffset = Math.random() * 100;
+                
+                // 保存引用以便动画更新
+                cardContainer.userData.frameMat = frameMat;
+                cardContainer.userData.photoMat = photoMat;
+                cardContainer.userData.backMat = backMat;
+                cardContainer.userData.coverMat = coverMat; 
+
+                cardContainer.userData.realPhotoTex = realPhotoTex; 
+                cardContainer.userData.isRevealed = false; 
+                cardContainer.userData.blessingText = blessingText;
+                cardContainer.userData.isGolden = false; 
+
+                cardContainer.renderOrder = 10; 
+
+                photoGroup.add(cardContainer);
+            }
+            
+            photoGroup.userData.createGoldenBackTexture = createGoldenBackTexture;
+        }
+
+        // 状态追踪变量，用于运镜逻辑
+        let isAutoMoving = false;
+
+        // --- 4. 动画循环 ---
+        function animate() {
+            requestAnimationFrame(animate);
+            time += 0.008;
+
+            // 基础状态逻辑
+            // [修正] 移除强制变树的逻辑。当手张开时，总是允许变为星空形态（morph=1.0）。
+            // 终章的触发会接管摄像机位置，使其进入星空中心。
+            if (finaleActive) {
+                targetMorph = 1.0; 
+            } else {
+                if (isHandOpen) {
+                    targetMorph = 1.0; 
+                } else {
+                    targetMorph = 0.0;
+                }
+                
+                if (isPinching) targetMorph = 1.0;
+            }
+
+            currentMorph += (targetMorph - currentMorph) * 0.05; 
+
+            // 星空旋转逻辑
+            if (currentMorph > 0.01) {
+                const galaxyRotSpeed = 0.0005; 
+                if(treePoints) treePoints.rotation.y += galaxyRotSpeed;
+                if(trunkPoints) trunkPoints.rotation.y += galaxyRotSpeed;
+                if(twinklePoints) twinklePoints.rotation.y += galaxyRotSpeed;
+                if(topStarSpherePoints) topStarSpherePoints.rotation.y += galaxyRotSpeed;
+            }
+
+            const updateUniforms = (obj) => {
+                if(obj && obj.material && obj.material.uniforms && obj.material.uniforms.uMorph) {
+                    obj.material.uniforms.uMorph.value = currentMorph;
+                    obj.material.uniforms.uTime.value = time;
+                }
+            };
+            updateUniforms(treePoints);
+            updateUniforms(trunkPoints);
+            updateUniforms(twinklePoints);
+            updateUniforms(topStarSpherePoints);
+            updateUniforms(topStarRing1Points);
+            updateUniforms(topStarRing2Points);
+
+            let revealedCount = 0;
+            if (photoGroup) {
+                photoGroup.children.forEach(c => {
+                    if (c.userData.isRevealed) revealedCount++;
+                });
+            }
+            unlockProgress = revealedCount / 12.0;
+            
+            // [修改] 终章触发逻辑：增加 isHandOpen 判断
+            // 只有当全部解锁 且 张开手掌时，触发终章
+            // Update: 修改为只要解锁且张手，就激活。不使用 !finaleTriggered 锁定
+            if (unlockProgress >= 0.99 && activeCard === null && isHandOpen) {
+                if (!treeBuildStarted) {
+                    treeBuildStarted = true; 
+                }
+                finaleActive = true; 
+                // finaleTriggered = true; // 移除此行，允许重复触发
+            }
+            
+            if (finaleActive) {
+                finaleProgress += (1.0 - finaleProgress) * 0.02; 
+            } else {
+                finaleProgress += (0.0 - finaleProgress) * 0.05; 
+            }
+            
+            if (treeBuildStarted) {
+                treeBuildProgress += 0.005; 
+                if (treeBuildProgress > 1.0) treeBuildProgress = 1.0;
+            } else {
+                treeBuildProgress = 0.0;
+            }
+
+            const finaleHideFactor = Math.max(0, 1.0 - finaleProgress * 2.0);
+            
+            if (trunkPoints && trunkPoints.material.uniforms) {
+                 trunkPoints.material.uniforms.uOpacity.value = finaleHideFactor;
+            }
+
+            if (photoGroup) {
+                photoGroup.updateMatrixWorld();
+
+                if (activeCard) {
+                    rotationVelocity *= 0.5; 
+                } else {
+                    let baseSpeed = 0.0009;
+                    if (finaleActive) {
+                        baseSpeed = 0.002; 
+                    }
+                    
+                    let edgeForce = 0;
+                    if (isHandOpen && !isPinching) { 
+                        if (currentHandX < 0.15) {
+                            if (finaleActive) {
+                                edgeForce = 0.0025;
+                            } else {
+                                edgeForce = -0.0025; 
+                            }
+                        } else if (currentHandX > 0.85) {
+                            if (finaleActive) {
+                                edgeForce = -0.0025;
+                            } else {
+                                edgeForce = 0.0025; 
+                            }
+                        }
+                    }
+
+                    rotationVelocity *= 0.95; 
+                    rotationVelocity += edgeForce;
+                    
+                    if (Math.abs(rotationVelocity) < 0.0001) {
+                         photoGroup.rotation.y -= baseSpeed;
+                    } else {
+                         photoGroup.rotation.y += rotationVelocity;
+                    }
+                }
+
+                photoGroup.children.forEach(cardContainer => {
+                    // 全局淡入进度 (Hand Open 触发)
+                    let targetOpacity = (currentMorph - 0.5) * 2.0;
+                    targetOpacity = Math.max(0, Math.min(1, targetOpacity));
+                    
+                    // 1. 设置边框和背面的不透明度 (跟随全局)
+                    if (cardContainer.userData.frameMat) cardContainer.userData.frameMat.opacity = targetOpacity;
+                    if (cardContainer.userData.backMat) cardContainer.userData.backMat.opacity = targetOpacity;
+                    
+                    // 2. 封面与照片的交叉淡入逻辑 (Cross-Fade)
+                    if (cardContainer.userData.coverMat && cardContainer.userData.photoMat) {
+                        // 目标 Reveal 状态 (0=揭开/照片可见, 1=覆盖/封面可见)
+                        let targetRevealAlpha = cardContainer.userData.isRevealed ? 0.0 : 1.0;
+                        
+                        // 平滑过渡
+                        cardContainer.userData.coverAlpha = THREE.MathUtils.lerp(
+                            cardContainer.userData.coverAlpha,
+                            targetRevealAlpha,
+                            0.1
+                        );
+                        
+                        // [关键修复] 封面不透明度 = 全局不透明度 * 覆盖状态
+                        cardContainer.userData.coverMat.opacity = targetOpacity * cardContainer.userData.coverAlpha;
+                        
+                        // [关键修复] 照片不透明度 = 全局不透明度 * (1 - 覆盖状态)
+                        // 这样当 Cover 存在时 (coverAlpha=1), Photo 就不显示 (opacity=0), 避免透视重叠
+                        let photoVis = 1.0 - cardContainer.userData.coverAlpha;
+                        // 钳制，防止 lerp 过冲导致负值
+                        photoVis = Math.max(0, Math.min(1, photoVis));
+                        cardContainer.userData.photoMat.opacity = targetOpacity * photoVis;
+
+                        // 优化深度写入
+                        cardContainer.userData.coverMat.depthWrite = cardContainer.userData.coverMat.opacity > 0.1;
+                    }
+
+                    if (cardContainer === activeCard) {
+                        cardContainer.renderOrder = 9999;
+                        
+                        if (cardContainer.userData.frameMat) {
+                            cardContainer.userData.frameMat.depthTest = false;
+                            cardContainer.userData.frameMat.depthWrite = false;
+                            cardContainer.userData.frameMat.opacity = 1.0;
+                        }
+                        if (cardContainer.userData.photoMat) {
+                            cardContainer.userData.photoMat.depthTest = false;
+                            cardContainer.userData.photoMat.depthWrite = false;
+                            cardContainer.userData.photoMat.opacity = 1.0;
+                        }
+                        if (cardContainer.userData.backMat) {
+                            cardContainer.userData.backMat.depthTest = false;
+                            cardContainer.userData.backMat.depthWrite = false;
+                            cardContainer.userData.backMat.opacity = 1.0;
+                        }
+                        if (cardContainer.userData.coverMat) { 
+                            cardContainer.userData.coverMat.depthTest = false;
+                            // 封面根据 reveal 状态决定透明度，被点击时 reveal=true, coverAlpha->0
+                            cardContainer.userData.coverMat.opacity = cardContainer.userData.coverAlpha; 
+                        }
+
+                        if (!cardContainer.userData.isRevealed) {
+                            cardContainer.userData.isRevealed = true;
+                            
+                            if (!cardContainer.userData.isGolden) {
+                                cardContainer.userData.isGolden = true;
+                                const goldTex = photoGroup.userData.createGoldenBackTexture(cardContainer.userData.blessingText);
+                                cardContainer.userData.backMat.map = goldTex;
+                                cardContainer.userData.backMat.needsUpdate = true;
+                            }
+                        }
+
+                        const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion);
+                        const targetWorldPos = camera.position.clone().add(forward.multiplyScalar(14));
+                        const targetLocalPos = photoGroup.worldToLocal(targetWorldPos.clone());
+
+                        const groupWorldQuat = new THREE.Quaternion();
+                        photoGroup.getWorldQuaternion(groupWorldQuat);
+                        const groupInv = groupWorldQuat.invert();
+                        const targetQuat = groupInv.multiply(camera.quaternion);
+
+                        cardContainer.position.lerp(targetLocalPos, 0.1);
+                        cardContainer.quaternion.slerp(targetQuat, 0.2);
+                        
+                        const pulse = 1.0 + Math.sin(time * 3.0) * 0.05; 
+                        const targetScale = new THREE.Vector3(3.2 * pulse, 3.2 * pulse, 3.2 * pulse);
+                        cardContainer.scale.lerp(targetScale, 0.1);
+
+                    } else {
+                        // [修改] 归位时的层级逻辑
+                        // 如果距离目标位置较远(正在飞行归位中)，保持较高层级防止穿模
+                        const distToTarget = cardContainer.position.distanceTo(cardContainer.userData.originPos);
+                        if (distToTarget > 0.5) {
+                            cardContainer.renderOrder = 5000; // 比选中状态(9999)低，但比静止状态(10)高
+                        } else {
+                            cardContainer.renderOrder = 10;
+                        }
+                        
+                        if (cardContainer.userData.frameMat) {
+                            cardContainer.userData.frameMat.depthTest = true;
+                            cardContainer.userData.frameMat.depthWrite = false;
+                        }
+                        if (cardContainer.userData.photoMat) {
+                            cardContainer.userData.photoMat.depthTest = true;
+                            cardContainer.userData.photoMat.depthWrite = false;
+                        }
+                        if (cardContainer.userData.backMat) {
+                            cardContainer.userData.backMat.depthTest = true;
+                            cardContainer.userData.backMat.depthWrite = false;
+                        }
+                        if (cardContainer.userData.coverMat) {
+                            cardContainer.userData.coverMat.depthTest = true;
+                        }
+
+                        cardContainer.position.lerp(cardContainer.userData.originPos, 0.05);
+                        
+                        const floatY = Math.sin(time * 1.5 + cardContainer.userData.randomOffset) * 0.2;
+                        const targetPosWithFloat = cardContainer.userData.originPos.clone();
+                        targetPosWithFloat.y += floatY;
+                        cardContainer.position.lerp(targetPosWithFloat, 0.05);
+
+                        if (finaleProgress > 0.01) {
+                            const currentQ = cardContainer.userData.originQuat.clone();
+                            const targetQ = cardContainer.userData.inwardQuat.clone();
+                            currentQ.slerp(targetQ, finaleProgress); 
+                            cardContainer.quaternion.slerp(currentQ, 0.05);
+                        } else {
+                            cardContainer.quaternion.slerp(cardContainer.userData.originQuat, 0.05);
+                        }
+                        
+                        cardContainer.scale.lerp(cardContainer.userData.originScale, 0.05);
+                    }
+                });
+            }
+
+            if (isHandOpen || finaleActive || currentMorph > 0.001 || finaleProgress > 0.001) {
+                isAutoMoving = true;
+            }
+
+            if (isAutoMoving) {
+                controls.enabled = false;
+
+                let targetCamPos = treeCamPos.clone(); 
+                
+                targetCamPos.lerp(galaxyCamPos, currentMorph);
+                
+                if (finaleProgress > 0.001) {
+                    targetCamPos.lerp(centerCamPos, finaleProgress);
+                }
+
+                camera.position.copy(targetCamPos);
+                camera.lookAt(0, 10, 0);
+
+                if (!isHandOpen && !finaleActive && currentMorph < 0.001 && finaleProgress < 0.001) {
+                    isAutoMoving = false;
+                    controls.enabled = true;
+                    controls.target.set(0, 10, 0); 
+                    controls.update();
+                }
+            } else {
+                controls.enabled = true;
+                controls.update();
+            }
+
+            composer.render();
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            composer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        function initMediaPipe() {
+            const videoElement = document.getElementById('video-input');
+            const statusText = document.getElementById('status-text');
+            const instructionText = document.getElementById('instruction-text');
+            const loading = document.getElementById('loading');
+
+            const hands = new Hands({locateFile: (file) => {
+                return `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`;
+            }});
+
+            hands.setOptions({
+                maxNumHands: 1,
+                modelComplexity: 1,
+                minDetectionConfidence: 0.5,
+                minTrackingConfidence: 0.5
+            });
+
+            hands.onResults(onResults);
+
+            const cameraUtils = new Camera(videoElement, {
+                onFrame: async () => {
+                    await hands.send({image: videoElement});
+                },
+                width: 640,
+                height: 480
+            });
+
+            cameraUtils.start()
+                .then(() => {
+                    loading.style.opacity = 0;
+                    setTimeout(() => loading.style.display = 'none', 500);
+                    console.log("Camera started");
+                })
+                .catch(err => {
+                    console.error(err);
+                    loading.innerText = "摄像头启动失败 (请允许权限)";
+                    statusText.innerText = "Camera Error";
+                });
+            
+            function onResults(results) {
+                if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+                    const landmarks = results.multiHandLandmarks[0];
+                    const wrist = landmarks[0];
+                    const thumbTip = landmarks[4];
+                    
+                    const currX = wrist.x;
+                    currentHandX = currX;
+
+                    if (typeof lastHandX !== 'undefined') {
+                        const delta = currX - lastHandX;
+                        if (!activeCard && isHandOpen) {
+                            if (finaleActive) {
+                                rotationVelocity -= delta * 0.35; 
+                            } else {
+                                rotationVelocity += delta * 0.35; 
+                            }
+                        }
+                    }
+                    lastHandX = currX;
+
+                    const tips = [4, 8, 12, 16, 20]; 
+                    let avgDist = 0;
+                    tips.forEach(idx => {
+                        const tip = landmarks[idx];
+                        const d = Math.sqrt(Math.pow(tip.x - wrist.x, 2) + Math.pow(tip.y - wrist.y, 2));
+                        avgDist += d;
+                    });
+                    avgDist /= 5;
+                    
+                    const indexTip = landmarks[8];
+                    const pinchDist = Math.sqrt(Math.pow(thumbTip.x - indexTip.x, 2) + Math.pow(thumbTip.y - indexTip.y, 2));
+
+                    const PINCH_THRESHOLD = 0.05; 
+                    const OPEN_THRESHOLD = 0.25;  
+
+                    const otherTips = [8, 12, 16, 20];
+                    let fiveFingerDist = 0;
+                    otherTips.forEach(id => {
+                        const t = landmarks[id];
+                        fiveFingerDist += Math.sqrt(Math.pow(t.x - thumbTip.x, 2) + Math.pow(t.y - thumbTip.y, 2));
+                    });
+                    fiveFingerDist /= 4;
+                    const isFiveFingerPinch = fiveFingerDist < 0.1; 
+
+                    if (pinchDist < PINCH_THRESHOLD) {
+                        if (isFiveFingerPinch) {
+                             isPinching = false;
+                             isHandOpen = false; 
+                             activeCard = null;
+                             
+                             finaleActive = false;
+
+                             statusText.innerText = "MERRY CHRISTMAS";
+                             statusText.style.color = "#ffffff";
+                             instructionText.innerText = "🖐️ OPEN YOUR HAND";
+                             
+                        } else {
+                            isPinching = true;
+                            isHandOpen = true; 
+                            statusText.innerText = "🎊🎄🥳🎄🎊";
+                            statusText.style.color = "#ffcc00";
+                            instructionText.innerText = "open your hand to continue";
+
+                            if (!activeCard && photoGroup) {
+                                let bestMetric = finaleActive ? -Infinity : Infinity; 
+                                let closest = null;
+                                
+                                const camDir = new THREE.Vector3();
+                                camera.getWorldDirection(camDir);
+                                
+                                photoGroup.children.forEach(group => {
+                                    const worldPos = new THREE.Vector3();
+                                    group.getWorldPosition(worldPos);
+                                    
+                                    if (finaleActive) {
+                                        const vecToCard = worldPos.clone().sub(camera.position).normalize();
+                                        const dot = camDir.dot(vecToCard);
+                                        if (dot > bestMetric) {
+                                            bestMetric = dot;
+                                            closest = group;
+                                        }
+                                    } else {
+                                        const dist = worldPos.distanceTo(camera.position);
+                                        if (dist < bestMetric) {
+                                            bestMetric = dist;
+                                            closest = group;
+                                        }
+                                    }
+                                });
+                                if (closest) activeCard = closest;
+                            }
+                        }
+
+                    } else if (avgDist > OPEN_THRESHOLD) {
+                        isPinching = false;
+                        isHandOpen = true; 
+                        activeCard = null;
+                        
+                        if (finaleActive) {
+                            statusText.innerText = "🩵💙💛 MERRY CHRISTMAS 💛💙🩵";
+                            statusText.style.color = "#ff88cc";
+                            instructionText.innerText = "🤏pick any photo you want ✊️make a fist to exit";
+                        } else {
+                            statusText.innerText = "GIFT TIME ✧*｡٩(ˊᗜˋ*)و✧*｡";
+                            statusText.style.color = "#88ccff";
+                            instructionText.innerText = "↔️move your hand and 🤏pick any photo you want";
+                        }
+
+                    } else if (isFiveFingerPinch) {
+                        isPinching = false;
+                        isHandOpen = false; 
+                        activeCard = null;
+                        
+                        finaleActive = false;
+
+                        statusText.innerText = "MERRY CHRISTMAS";
+                        statusText.style.color = "#ffffff";
+                        instructionText.innerText = "🖐️ OPEN YOUR HAND";
+                        
+                    } else {
+                        isPinching = false;
+                        activeCard = null;
+                    }
+                } else {
+                    isPinching = false;
+                    activeCard = null;
+                    lastHandX = undefined; 
+                    currentHandX = 0.5; // Reset
+                    
+                    if (isHandOpen) {
+                    } else {
+                         statusText.innerText = "MERRY CHRISTMAS";
+                         statusText.style.color = "#ffffff";
+                    }
+                }
+            }
+        }
+
+        initScene();
+        createTrunk();
+        createTree();
+        createTwinkles(); 
+        createTopParticles();
+        createPhotoGallery(); 
+        animate();
+        
+        setTimeout(initMediaPipe, 1000);
+
+        // --- 音乐与启动逻辑 (修改版) ---
+        const bgm = document.getElementById('bgm');
+        const musicBtn = document.getElementById('music-btn');
+        const startScreen = document.getElementById('start-screen');
+        const startBtn = document.getElementById('start-btn');
+        let isMusicPlaying = false;
+
+        bgm.volume = 0.4; 
+
+        // SVG 图标数据
+        const playingIcon = `<svg class="music-icon-playing" viewBox="0 0 24 24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>`;
+        const mutedIcon = `<svg class="music-icon-muted" viewBox="0 0 24 24"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73 4.27 3zM12 4L9.91 6.09 12 8.18V4z"/></svg>`;
+
+        function toggleMusic() {
+            if (bgm.paused) {
+                bgm.play().then(() => {
+                    isMusicPlaying = true;
+                    // 切换为蓝色亮亮音符 SVG
+                    musicBtn.innerHTML = playingIcon;
+                }).catch(e => console.log("等待交互..."));
+            } else {
+                bgm.pause();
+                isMusicPlaying = false;
+                // 切换为静音 SVG
+                musicBtn.innerHTML = mutedIcon;
+            }
+        }
+
+        musicBtn.addEventListener('click', toggleMusic);
+
+        // 新增：监听启动按钮的点击
+        startBtn.addEventListener('click', () => {
+            // 1. 尝试播放音乐 (因为是在用户点击事件中调用，所以浏览器允许播放)
+            toggleMusic();
+            
+            // 2. 淡出遮罩层
+            startScreen.style.opacity = '0';
+            
+            // 3. 动画结束后移除元素，避免遮挡交互
+            setTimeout(() => {
+                startScreen.style.display = 'none';
+            }, 1000); // 这里的 1000ms 对应 CSS transition 的时间
+        });
+
+    </script>
+</body>
+
+</html>
