@@ -545,15 +545,18 @@
             const count = 12;
             const radius = 10; 
             
-            // 相框尺寸：3.5 x 4.5
+            // --- [修改重点] 高清配置 ---
+            const RES_SCALE = 4; // 分辨率放大4倍 (300x400 -> 1200x1600)
+            
+            // 相框3D物理尺寸 (保持不变，只改纹理清晰度)
             const frameWidth = 3.5;
             const frameHeight = 4.5;
-            // 照片尺寸：3.2 x 4.2
             const photoWidth = 3.2;
             const photoHeight = 4.2;
 
-            const drawBackground = (ctx, isGolden) => {
-                const grd = ctx.createLinearGradient(0, 0, 300, 400);
+            // 绘制背景的辅助函数 (已适配 RES_SCALE)
+            const drawBackground = (ctx, isGolden, w, h) => {
+                const grd = ctx.createLinearGradient(0, 0, w, h);
                 if (isGolden) {
                     grd.addColorStop(0, '#B78727'); 
                     grd.addColorStop(1, '#F7D674'); 
@@ -562,69 +565,100 @@
                     grd.addColorStop(1, '#0072ff'); 
                 }
                 ctx.fillStyle = grd;
-                ctx.fillRect(0, 0, 300, 400);
+                ctx.fillRect(0, 0, w, h);
             };
 
+            // 创建背面纹理 (祝福语) - 已适配高清
             const createBackTexture = (text, isGolden = false) => {
                 const canvas = document.createElement('canvas');
-                canvas.width = 300; canvas.height = 400;
+                // 放大画布尺寸
+                canvas.width = 300 * RES_SCALE; 
+                canvas.height = 400 * RES_SCALE;
                 const ctx = canvas.getContext('2d');
-                drawBackground(ctx, isGolden);
+                
+                const w = canvas.width;
+                const h = canvas.height;
+                
+                drawBackground(ctx, isGolden, w, h);
                 
                 ctx.strokeStyle = isGolden ? "rgba(255, 255, 255, 0.9)" : "rgba(255, 255, 255, 0.8)";
-                ctx.lineWidth = 15;
-                ctx.strokeRect(10, 10, 280, 380);
+                ctx.lineWidth = 15 * RES_SCALE; // 线条加粗
+                // 绘制边框
+                ctx.strokeRect(10 * RES_SCALE, 10 * RES_SCALE, 280 * RES_SCALE, 380 * RES_SCALE);
                 
                 ctx.fillStyle = isGolden ? "#5C4033" : "white";
                 ctx.textAlign = "center";
                 ctx.textBaseline = "middle";
-                ctx.font = "bold 40px Arial";
+                ctx.font = `bold ${40 * RES_SCALE}px Arial`; // 字体放大
+                
                 const words = text.split(' ');
+                // 坐标位置也相应放大
+                const cx = 150 * RES_SCALE; 
+                const cy1 = 180 * RES_SCALE;
+                const cy2 = 230 * RES_SCALE;
+                const cyC = 200 * RES_SCALE;
+
                 if (words.length > 2) {
-                    ctx.fillText(words.slice(0, Math.ceil(words.length/2)).join(' '), 150, 180);
-                    ctx.fillText(words.slice(Math.ceil(words.length/2)).join(' '), 150, 230);
+                    ctx.fillText(words.slice(0, Math.ceil(words.length/2)).join(' '), cx, cy1);
+                    ctx.fillText(words.slice(Math.ceil(words.length/2)).join(' '), cx, cy2);
                 } else {
-                    ctx.fillText(text, 150, 200);
+                    ctx.fillText(text, cx, cyC);
                 }
-                return new THREE.CanvasTexture(canvas);
+                
+                const tex = new THREE.CanvasTexture(canvas);
+                tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
+                return tex;
             };
 
             const createGoldenBackTexture = (text) => {
                 return createBackTexture(text, true);
             };
 
+            // 绘制占位图 (礼物盒) - 已适配高清
             const drawPlaceholder = (ctx) => {
+                const w = 300 * RES_SCALE;
+                const h = 400 * RES_SCALE;
+
                 ctx.fillStyle = '#C0392B';
-                ctx.fillRect(0, 0, 300, 400); 
+                ctx.fillRect(0, 0, w, h); 
                 
                 ctx.fillStyle = '#F1C40F';
-                ctx.fillRect(135, 0, 30, 400); 
-                ctx.fillRect(0, 185, 300, 30); 
+                // 坐标和尺寸都需要乘以 RES_SCALE
+                ctx.fillRect(135 * RES_SCALE, 0, 30 * RES_SCALE, h); 
+                ctx.fillRect(0, 185 * RES_SCALE, w, 30 * RES_SCALE); 
                 
                 ctx.fillStyle = 'white';
-                ctx.font = 'bold 32px Arial';
+                ctx.font = `bold ${32 * RES_SCALE}px Arial`;
                 ctx.textAlign = 'center';
-                ctx.fillText("🎁 GIFT", 150, 120);
-                ctx.font = '20px Arial';
-                ctx.fillText("FOR YOU", 150, 160);
+                ctx.fillText("🎁 GIFT", 150 * RES_SCALE, 120 * RES_SCALE);
+                ctx.font = `${20 * RES_SCALE}px Arial`;
+                ctx.fillText("FOR YOU", 150 * RES_SCALE, 160 * RES_SCALE);
             };
 
+            // 创建正面照片纹理 - 已适配高清
             const createFrontTexture = (imgFilename) => {
                 const canvas = document.createElement('canvas');
-                canvas.width = 300; canvas.height = 400;
+                // 核心：大幅提升画布分辨率
+                canvas.width = 300 * RES_SCALE; 
+                canvas.height = 400 * RES_SCALE;
                 const ctx = canvas.getContext('2d');
                 
+                // 默认黑色背景
                 ctx.fillStyle = "#000";
-                ctx.fillRect(0, 0, 300, 400);
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
 
                 const tex = new THREE.CanvasTexture(canvas);
                 const img = new Image();
                 img.crossOrigin = "Anonymous";
                 
                 img.onload = () => {
-                    ctx.drawImage(img, 0, 0, 300, 400);
+                    // 将图片拉伸绘制到高清画布上
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
                     tex.colorSpace = THREE.SRGBColorSpace; 
                     tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
+                    // 优化过滤设置，防止远处闪烁
+                    tex.minFilter = THREE.LinearMipMapLinearFilter;
+                    tex.magFilter = THREE.LinearFilter;
                     tex.needsUpdate = true;
                 };
                 
@@ -643,6 +677,7 @@
                 return tex;
             };
 
+            // 下面是创建 Mesh 的逻辑，基本保持不变
             const frameGeometry = new THREE.PlaneGeometry(3.5, 4.5);
             const photoGeometry = new THREE.PlaneGeometry(3.2, 4.2);
 
@@ -683,7 +718,7 @@
                     map: backTex, 
                     color: 0xffffff, 
                     transparent: true,
-                    opacity: 0, // 初始透明，由动画循环控制
+                    opacity: 0, 
                     side: THREE.FrontSide,
                     depthWrite: false
                 });
@@ -729,7 +764,6 @@
                 cardContainer.userData.originQuat = cardContainer.quaternion.clone();
                 
                 const tempLook = cardContainer.clone();
-                // [修改] 终章模式看向的高度，原为10(仰角45度)，改为2(仰角较小，接近直立但微仰)
                 tempLook.lookAt(0, 2, 0); 
                 cardContainer.userData.inwardQuat = tempLook.quaternion.clone();
 
@@ -1242,3 +1276,4 @@
 </body>
 
 </html>
+
