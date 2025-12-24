@@ -58,6 +58,11 @@
     </script>
 </head>
 <body>
+    <audio id="bgm" loop>
+        <source src="https://cdn.jsdelivr.net/gh/vivianlymm-li/my-image-hosting@main/bgm.mp3">
+    </audio>
+
+    <div id="music-btn">🔇</div>
 
     <div id="loading" class="loading">LOADING (camera)...</div>
 
@@ -1272,8 +1277,46 @@
         
         setTimeout(initMediaPipe, 1000);
 
+        // --- 新增：背景音乐控制逻辑 ---
+        const bgm = document.getElementById('bgm');
+        const musicBtn = document.getElementById('music-btn');
+        let isMusicPlaying = false;
+
+        // 设置音量 (0.0 ~ 1.0)
+        bgm.volume = 0.4; 
+
+        function toggleMusic() {
+            if (bgm.paused) {
+                bgm.play().then(() => {
+                    isMusicPlaying = true;
+                    musicBtn.innerText = "🎵"; // 播放图标
+                    musicBtn.style.animation = "spin 3s linear infinite"; // 可选：加个旋转动画
+                }).catch(e => console.log("等待交互..."));
+            } else {
+                bgm.pause();
+                isMusicPlaying = false;
+                musicBtn.innerText = "🔇"; // 静音图标
+                musicBtn.style.animation = "none";
+            }
+        }
+
+        musicBtn.addEventListener('click', toggleMusic);
+
+        // 尝试自动播放 (大部分浏览器会拦截，所以需要下面的 click 监听)
+        bgm.play().then(() => {
+            isMusicPlaying = true;
+            musicBtn.innerText = "🎵";
+        }).catch(() => {
+            console.log("浏览器阻止了自动播放，等待用户点击...");
+            // 监听任意点击，一旦用户点了屏幕，就开始播放
+            document.addEventListener('click', () => {
+                if (!isMusicPlaying) toggleMusic();
+            }, { once: true }); // 只执行一次
+        });
+
     </script>
 </body>
 
 </html>
+
 
